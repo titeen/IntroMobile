@@ -1,5 +1,7 @@
 "use dom"
 import { Text, View } from "react-native";
+import Home from "./home";
+import { Link } from "expo-router";
 
 const Index = () => {
   return (
@@ -11,6 +13,7 @@ const Index = () => {
       }}
     >
       <Text>Edit app/index.tsx to edit this screen.</Text>
+      <Link href="/home">Home</Link>
     </View>
   );
 }
