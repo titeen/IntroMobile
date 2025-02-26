@@ -16,7 +16,6 @@ export interface UfoSighting {
   witnessContact: string;
 }
 
-// Haalt alle UFO sightings op van de API
 export const fetchSightings = async (): Promise<UfoSighting[]> => {
   try {
     const response = await axios.get<UfoSighting[]>(API_URL);
