@@ -4,10 +4,9 @@ import L from "leaflet";
 import { useEffect, useState } from "react";
 import { fetchSightings, UfoSighting } from "../services/api";
 
-// Format date
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
-  return date.toLocaleDateString('nl-NL', {
+  return date.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',

@@ -18,6 +18,13 @@ export default function RootLayout() {
           tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="format-list-bulleted" color={color} size={size} />
         }}
       />
+      <Tabs.Screen
+        name="report"
+        options={{
+          title: 'Report Sighting',
+          tabBarIcon: ({ color, size }) => <MaterialCommunityIcons name="plus-circle" color={color} size={size} />
+        }}
+      />
     </Tabs>
   );
 }
