@@ -23,7 +23,7 @@ const UFO_ICON = L.icon({
 
 // Reverse geocoding function with OpenStreetMap Nominatim
 const getLocationName = async (latitude: number, longitude: number) => {
-  const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`;
+  const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&accept-language=en-US`;
 
   try {
     const response = await fetch(url);
@@ -40,15 +40,24 @@ const getLocationName = async (latitude: number, longitude: number) => {
 const UFOMap = () => {
   const [sightings, setSightings] = useState<UfoSighting[]>([]);
   const [locationNames, setLocationNames] = useState<Map<number, string>>(new Map());
+  const [loadingLocation, setLoadingLocation] = useState<Map<number, boolean>>(new Map());
 
   useEffect(() => {
     const loadSightings = async () => {
       const data = await fetchSightings();
       setSightings(data);
-      data.forEach(async (sighting) => {
+
+      const tempLocationNames = new Map<number, string>();  // Temporary map for storing location names
+
+      // Loop through each sighting and fetch the location
+      for (const sighting of data) {
+        setLoadingLocation((prev) => new Map(prev).set(sighting.id, true)); 
         const name = await getLocationName(sighting.location.latitude, sighting.location.longitude);
-        setLocationNames((prev) => new Map(prev).set(sighting.id, name));
-      });
+        tempLocationNames.set(sighting.id, name);
+        setLoadingLocation((prev) => new Map(prev).set(sighting.id, false));
+      }
+
+      setLocationNames(tempLocationNames);
     };
     loadSightings();
   }, []);
@@ -57,7 +66,7 @@ const UFOMap = () => {
     <MapContainer center={[51.2243, 4.3852]} zoom={3} style={{ width: "100%", height: "100vh" }}>
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       {sightings.map((sighting) => {
-        const locationName = locationNames.get(sighting.id) || "Location unknown";
+        const locationName = locationNames.get(sighting.id) || "Loading location";
         return (
           <Marker
             key={sighting.id}

@@ -19,6 +19,7 @@ const ReportSighting = () => {
   const [description, setDescription] = useState("");
   const [photo, setPhoto] = useState<string | null>(null);
   const [status, setStatus] = useState("Unconfirmed");
+  const [contact, setContact] = useState("");
   const [location, setLocation] = useState<[number, number] | null>(null);
   const router = useRouter();
 
@@ -84,6 +85,16 @@ const ReportSighting = () => {
         mode="outlined"
         multiline
         numberOfLines={4}
+        style={styles.input}
+      />
+
+      <TextInput
+        label="Contact"
+        value={contact}
+        onChangeText={setContact}
+        mode="outlined"
+        multiline
+        numberOfLines={1}
         style={styles.input}
       />
 
