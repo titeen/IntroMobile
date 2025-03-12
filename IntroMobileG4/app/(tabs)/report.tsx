@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { View, Image, ScrollView, StyleSheet } from "react-native";  // ScrollView toegevoegd
-import { TextInput, Button, Text, Card } from "react-native-paper";
+import { TextInput, Button, Text, Card, ToggleButton } from "react-native-paper";
 import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
@@ -98,6 +98,19 @@ const ReportSighting = () => {
         style={styles.input}
       />
 
+
+    <Text style={styles.toggleLabel}>Status:</Text>
+    <Text style={styles.statusText}>Current Status: {status}</Text>
+      <ToggleButton.Row
+        onValueChange={(value) => setStatus(value)}
+        value={status}
+        style={styles.toggleContainer}
+      >
+        <ToggleButton icon="cancel" value="Unconfirmed" />
+        <ToggleButton icon="check-circle" value="Confirmed" />
+      </ToggleButton.Row>
+      
+
       <Button icon="camera" mode="contained" onPress={pickImage} style={styles.button}>
         Pick an Image
       </Button>
@@ -165,6 +178,21 @@ const styles = StyleSheet.create({
     marginTop: 20,
     backgroundColor: "#00c853",
   },
+  toggleLabel: {
+    marginTop: 15,
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  toggleContainer: {
+    marginVertical: 10,
+    justifyContent: "center",
+  },
+  statusText: {
+    textAlign: "center",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 10,
+}
 });
 
 export default ReportSighting;
