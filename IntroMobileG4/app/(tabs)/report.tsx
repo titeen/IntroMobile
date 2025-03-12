@@ -19,8 +19,9 @@ const ReportSighting = () => {
   const [description, setDescription] = useState("");
   const [photo, setPhoto] = useState<string | null>(null);
   const [status, setStatus] = useState("Unconfirmed");
-  const [contact, setContact] = useState("");
+  const [witnessContact, setContact] = useState("");
   const [location, setLocation] = useState<[number, number] | null>(null);
+  const [errors, setErrors] = useState<{ witnessName?: string; description?: string; witnessContact?: string }>({});
   const router = useRouter();
 
   const pickImage = async () => {
@@ -37,13 +38,24 @@ const ReportSighting = () => {
   };
 
   const submitSighting = async () => {
+    let newErrors: { witnessName?: string; description?: string; witnessContact?: string } = {};
+
+    if (!witnessName.trim()) newErrors.witnessName = "Name is required.";
+    if (!description.trim()) newErrors.description = "Description is required.";
+    if (!witnessContact.trim()) newErrors.witnessContact = "Contact is required.";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
     const newSighting = {
       id: Date.now(),
       witnessName,
       description,
       picture: photo,
       status,
-      contact,
+      witnessContact,
       dateTime: new Date().toISOString(),
       location: location ? { latitude: location[0], longitude: location[1] } : null,
     };
@@ -77,7 +89,9 @@ const ReportSighting = () => {
         onChangeText={setWitnessName}
         mode="outlined"
         style={styles.input}
+        error={!!errors.witnessName}
       />
+      {errors.witnessName && <Text style={styles.errorText}>{errors.witnessName}</Text>}
 
       <TextInput
         label="Description"
@@ -87,18 +101,21 @@ const ReportSighting = () => {
         multiline
         numberOfLines={4}
         style={styles.input}
+        error={!!errors.description}
       />
+      {errors.description && <Text style={styles.errorText}>{errors.description}</Text>}
 
       <TextInput
         label="Contact"
-        value={contact}
+        value={witnessContact}
         onChangeText={setContact}
         mode="outlined"
         multiline
         numberOfLines={1}
         style={styles.input}
+        error={!!errors.witnessContact}
       />
-
+      {errors.witnessContact && <Text style={styles.errorText}>{errors.witnessContact}</Text>}
 
     <Text style={styles.toggleLabel}>Status:</Text>
     <Text style={styles.statusText}>Current Status: {status}</Text>
@@ -193,6 +210,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     marginBottom: 10,
+},
+errorText: {
+  color: "red",
+  marginBottom: 10,
+  fontSize: 14,
 }
 });
 
