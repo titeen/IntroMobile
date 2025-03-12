@@ -43,6 +43,7 @@ const ReportSighting = () => {
       description,
       picture: photo,
       status,
+      contact,
       dateTime: new Date().toISOString(),
       location: location ? { latitude: location[0], longitude: location[1] } : null,
     };

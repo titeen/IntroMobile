@@ -23,7 +23,7 @@ const SightingList = () => {
         style={{
           overflowY: "auto",
           flexGrow: 1,
-          border: "1px solid #ccc",
+          border: "5px solid #0d0d0d",
           padding: "10px",
           maxHeight: "70vh",
         }}
@@ -48,7 +48,7 @@ const SightingList = () => {
                 })
               }
               style={{
-                borderBottom: "1px solid #ccc",
+                borderBottom: "1px solid #0d0d0d",
                 padding: "10px 0",
                 display: "flex",
                 alignItems: "center",
