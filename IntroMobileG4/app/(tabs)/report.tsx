@@ -7,6 +7,9 @@ import { useRouter } from "expo-router";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import EventEmitter from "react-native/Libraries/vendor/emitter/EventEmitter";
+
+const eventEmitter = new EventEmitter();
 
 const UFO_ICON = L.icon({
   iconUrl: "https://raw.githubusercontent.com/similonap/public_icons/main/ufo.png",
@@ -65,6 +68,8 @@ const ReportSighting = () => {
     sightings.push(newSighting);
 
     await AsyncStorage.setItem("sightings", JSON.stringify(sightings));
+    eventEmitter.emit("newSightingAdded", newSighting);
+
     router.push("/list");
   };
 

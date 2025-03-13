@@ -1,18 +1,26 @@
 import { useEffect, useState } from "react";
 import { fetchSightings, UfoSighting } from "../../services/api";
 import { useRouter } from "expo-router";
+import EventEmitter from "react-native/Libraries/vendor/emitter/EventEmitter";
+
+const eventEmitter = new EventEmitter();
 
 const SightingList = () => {
   const [sightings, setSightings] = useState<UfoSighting[]>([]);
   const router = useRouter();
 
-  // Fetch UFO sightings
+  const loadSightings = async () => {
+    const data = await fetchSightings();
+    setSightings(data);
+  };
+
   useEffect(() => {
-    const loadSightings = async () => {
-      const data = await fetchSightings();
-      setSightings(data);
-    };
     loadSightings();
+    const listener = eventEmitter.addListener("newSightingAdded", async (newSighting) => {
+      setSightings((prevSightings) => [newSighting, ...prevSightings]); 
+    });
+
+    return () => listener.remove(); 
   }, []);
 
   return (
