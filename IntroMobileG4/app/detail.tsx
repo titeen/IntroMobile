@@ -18,7 +18,7 @@ const formatDate = (dateString: string) => {
 
 // Reverse geocoding function with OpenStreetMap Nominatim
 const getLocationName = async (latitude: number, longitude: number) => {
-  const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`;
+  const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&accept-language=en-US`;
 
   try {
     const response = await fetch(url);

@@ -139,13 +139,26 @@ const ReportSighting = () => {
         </Card>
       )}
 
-      <Text style={styles.mapTitle}>Select Location:</Text>
-      <View style={styles.mapContainer}>
-        <MapContainer center={[51.2243, 4.3852]} zoom={3} style={{ height: "100%", width: "100%" }}>
-          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-          <LocationSelector />
-        </MapContainer>
-      </View>
+  <Text style={styles.mapTitle}>Select Location:</Text>
+  <View style={styles.mapContainer}>
+    <MapContainer 
+      center={[51.2243, 4.3852]} 
+      zoom={6} 
+      minZoom={3}  
+      maxZoom={18}
+      worldCopyJump={false} 
+      maxBounds={[
+        [-85, -180], 
+        [85, 180],   
+      ]}
+      maxBoundsViscosity={1.0} 
+      style={{ height: "100%", width: "100%" }}
+    >
+      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+      <LocationSelector />
+    </MapContainer>
+  </View>
+
 
       <Button mode="contained" onPress={submitSighting} style={styles.submitButton}>
         Submit Sighting
@@ -189,7 +202,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   mapContainer: {
-    height: 300,
+    height: 1000,
     marginVertical: 10,
   },
   submitButton: {
