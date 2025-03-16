@@ -83,7 +83,7 @@ const ReportSighting = () => {
   }
 
   return (
-    <ScrollView style={styles.container}>  {/* ScrollView toegevoegd */}
+    <ScrollView style={styles.container}>  
       <Text variant="titleLarge" style={styles.title}>
         Report a UFO Sighting 🛸
       </Text>

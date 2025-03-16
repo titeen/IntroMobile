@@ -1,3 +1,5 @@
+"use dom";
+
 import { useEffect, useState } from "react";
 import { fetchSightings, UfoSighting } from "../../services/api";
 import { useRouter } from "expo-router";
@@ -13,30 +15,6 @@ const SightingList = () => {
   const [localSightingIds, setLocalSightingIds] = useState<number[]>([]);
   const router = useRouter();
 
-  const loadSightings = async () => {
-    const data = await fetchSightings();
-    setSightings(data);
-    
-    // Get IDs of locally stored sightings
-    const storedSightings = await AsyncStorage.getItem("sightings");
-    if (storedSightings) {
-      const localItems = JSON.parse(storedSightings);
-      setLocalSightingIds(localItems.map((item: UfoSighting) => item.id));
-    }
-  };
-
-  const deleteSighting = async (id: number) => {
-    // Remove from local storage
-    const storedSightings = await AsyncStorage.getItem("sightings");
-    if (storedSightings) {
-      const localItems = JSON.parse(storedSightings);
-      const updatedItems = localItems.filter((item: UfoSighting) => item.id !== id);
-      await AsyncStorage.setItem("sightings", JSON.stringify(updatedItems));
-    }
-    
-    setSightings(sightings.filter(sighting => sighting.id !== id));
-  };
-
   useEffect(() => {
     loadSightings();
     const listener = eventEmitter.addListener("newSightingAdded", async (newSighting) => {
@@ -46,6 +24,40 @@ const SightingList = () => {
 
     return () => listener.remove(); 
   }, []);
+
+  const loadSightings = async () => {
+    try {
+      const data = await fetchSightings();
+      setSightings(data);
+
+      // Ophalen van lokaal opgeslagen sightings
+      const storedSightings = await AsyncStorage.getItem("sightings");
+      if (storedSightings) {
+        const localItems = JSON.parse(storedSightings);
+        setLocalSightingIds(localItems.map((item: UfoSighting) => item.id));
+      }
+    } catch (error) {
+      console.error("Error loading sightings:", error);
+    }
+  };
+
+  const deleteSighting = async (id: number) => {
+    try {
+      // Verwijderen uit local storage
+      const storedSightings = await AsyncStorage.getItem("sightings");
+      if (storedSightings) {
+        const localItems = JSON.parse(storedSightings);
+        const updatedItems = localItems.filter((item: UfoSighting) => item.id !== id);
+        await AsyncStorage.setItem("sightings", JSON.stringify(updatedItems));
+      }
+
+      // Verwijderen uit de lijst
+      setSightings(sightings.filter(sighting => sighting.id !== id));
+      setLocalSightingIds(localSightingIds.filter(localId => localId !== id));
+    } catch (error) {
+      console.error("Error deleting sighting:", error);
+    }
+  };
 
   return (
     <div style={{ padding: "20px", height: "100vh", display: "flex", flexDirection: "column" }}>
@@ -106,13 +118,11 @@ const SightingList = () => {
                   <p>{sighting.description}</p>
                 </div>
               </div>
-              
+
               {localSightingIds.includes(sighting.id) && (
                 <TouchableOpacity
                   onPress={() => deleteSighting(sighting.id)}
-                  style={{
-                    padding: 10,
-                  }}
+                  style={{ padding: 10 }}
                 >
                   <MaterialCommunityIcons name="trash-can" size={24} color="red" />
                 </TouchableOpacity>

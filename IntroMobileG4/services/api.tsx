@@ -20,7 +20,7 @@ export interface UfoSighting {
 // Sightings ophalen (zowel van API als AsyncStorage)
 export const fetchSightings = async (): Promise<UfoSighting[]> => {
   try {
-    //uit AsyncStorage
+    // uit AsyncStorage
     const storedSightings = await AsyncStorage.getItem("sightings");
     const localSightings: UfoSighting[] = storedSightings ? JSON.parse(storedSightings) : [];
 
