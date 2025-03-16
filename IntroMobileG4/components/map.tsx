@@ -47,7 +47,7 @@ const UFOMap = () => {
       const data = await fetchSightings();
       setSightings(data);
 
-      const tempLocationNames = new Map<number, string>();  // Temporary map for storing location names
+      const tempLocationNames = new Map<number, string>();  
 
       // Loop through each sighting and fetch the location
       for (const sighting of data) {
@@ -63,7 +63,19 @@ const UFOMap = () => {
   }, []);
 
   return (
-    <MapContainer center={[51.2243, 4.3852]} zoom={3} style={{ width: "100%", height: "100vh" }}>
+    <MapContainer 
+      center={[51.2243, 4.3852]} 
+      zoom={6} 
+      minZoom={3} 
+      maxZoom={18} 
+      worldCopyJump={false} 
+      maxBounds={[
+        [-85, -180], 
+        [85, 180],   
+      ]}
+      maxBoundsViscosity={1.0} 
+      style={{ width: "100%", height: "100vh" }}
+    >
       <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       {sightings.map((sighting) => {
         const locationName = locationNames.get(sighting.id) || "Loading location";
@@ -89,6 +101,7 @@ const UFOMap = () => {
       })}
     </MapContainer>
   );
+  
 };
 
 export default UFOMap;

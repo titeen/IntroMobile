@@ -1,18 +1,50 @@
 import { useEffect, useState } from "react";
 import { fetchSightings, UfoSighting } from "../../services/api";
 import { useRouter } from "expo-router";
+import EventEmitter from "react-native/Libraries/vendor/emitter/EventEmitter";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { TouchableOpacity, View } from "react-native";
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+
+const eventEmitter = new EventEmitter();
 
 const SightingList = () => {
   const [sightings, setSightings] = useState<UfoSighting[]>([]);
+  const [localSightingIds, setLocalSightingIds] = useState<number[]>([]);
   const router = useRouter();
 
-  // Fetch UFO sightings
+  const loadSightings = async () => {
+    const data = await fetchSightings();
+    setSightings(data);
+    
+    // Get IDs of locally stored sightings
+    const storedSightings = await AsyncStorage.getItem("sightings");
+    if (storedSightings) {
+      const localItems = JSON.parse(storedSightings);
+      setLocalSightingIds(localItems.map((item: UfoSighting) => item.id));
+    }
+  };
+
+  const deleteSighting = async (id: number) => {
+    // Remove from local storage
+    const storedSightings = await AsyncStorage.getItem("sightings");
+    if (storedSightings) {
+      const localItems = JSON.parse(storedSightings);
+      const updatedItems = localItems.filter((item: UfoSighting) => item.id !== id);
+      await AsyncStorage.setItem("sightings", JSON.stringify(updatedItems));
+    }
+    
+    setSightings(sightings.filter(sighting => sighting.id !== id));
+  };
+
   useEffect(() => {
-    const loadSightings = async () => {
-      const data = await fetchSightings();
-      setSightings(data);
-    };
     loadSightings();
+    const listener = eventEmitter.addListener("newSightingAdded", async (newSighting) => {
+      setSightings((prevSightings) => [newSighting, ...prevSightings]); 
+      setLocalSightingIds(prev => [...prev, newSighting.id]);
+    });
+
+    return () => listener.remove(); 
   }, []);
 
   return (
@@ -32,39 +64,59 @@ const SightingList = () => {
           {sightings.map((sighting) => (
             <li
               key={sighting.id}
-              onClick={() =>
-                router.push({
-                  pathname: "/detail",
-                  params: {
-                    witnessName: sighting.witnessName,
-                    picture: sighting.picture,
-                    description: sighting.description,
-                    status: sighting.status,
-                    dateTime: sighting.dateTime,
-                    witnessContact: sighting.witnessContact,
-                    latitude: sighting.location.latitude, 
-                    longitude: sighting.location.longitude, 
-                  },
-                })
-              }
               style={{
                 borderBottom: "1px solid #0d0d0d",
                 padding: "10px 0",
                 display: "flex",
                 alignItems: "center",
                 gap: "10px",
-                cursor: "pointer",
               }}
             >
-              <img
-                src={sighting.picture}
-                alt="UFO"
-                style={{ width: "50px", height: "50px", borderRadius: "8px" }}
-              />
-              <div>
-                <strong>{sighting.witnessName}</strong>
-                <p>{sighting.description}</p>
+              <div
+                onClick={() =>
+                  router.push({
+                    pathname: "/detail",
+                    params: {
+                      witnessName: sighting.witnessName,
+                      picture: sighting.picture,
+                      description: sighting.description,
+                      status: sighting.status,
+                      dateTime: sighting.dateTime,
+                      witnessContact: sighting.witnessContact,
+                      latitude: sighting.location.latitude, 
+                      longitude: sighting.location.longitude, 
+                    },
+                  })
+                }
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  cursor: "pointer",
+                  flexGrow: 1,
+                }}
+              >
+                <img
+                  src={sighting.picture}
+                  alt="UFO"
+                  style={{ width: "50px", height: "50px", borderRadius: "8px" }}
+                />
+                <div>
+                  <strong>{sighting.witnessName}</strong>
+                  <p>{sighting.description}</p>
+                </div>
               </div>
+              
+              {localSightingIds.includes(sighting.id) && (
+                <TouchableOpacity
+                  onPress={() => deleteSighting(sighting.id)}
+                  style={{
+                    padding: 10,
+                  }}
+                >
+                  <MaterialCommunityIcons name="trash-can" size={24} color="red" />
+                </TouchableOpacity>
+              )}
             </li>
           ))}
         </ul>
