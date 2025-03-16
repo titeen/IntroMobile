@@ -8,7 +8,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { TouchableOpacity, View } from "react-native";
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
-const eventEmitter = new EventEmitter();
+export const eventEmitter = new EventEmitter();
 
 const SightingList = () => {
   const [sightings, setSightings] = useState<UfoSighting[]>([]);
@@ -18,6 +18,7 @@ const SightingList = () => {
   useEffect(() => {
     loadSightings();
     const listener = eventEmitter.addListener("newSightingAdded", async (newSighting) => {
+      console.log("New sighting received:", newSighting);
       setSightings((prevSightings) => [newSighting, ...prevSightings]); 
       setLocalSightingIds(prev => [...prev, newSighting.id]);
     });
@@ -50,15 +51,17 @@ const SightingList = () => {
         const updatedItems = localItems.filter((item: UfoSighting) => item.id !== id);
         await AsyncStorage.setItem("sightings", JSON.stringify(updatedItems));
       }
-
+  
       // Verwijderen uit de lijst
       setSightings(sightings.filter(sighting => sighting.id !== id));
       setLocalSightingIds(localSightingIds.filter(localId => localId !== id));
+      
+      // Event voor verwijderen
+      eventEmitter.emit("sightingDeleted", id);
     } catch (error) {
       console.error("Error deleting sighting:", error);
     }
   };
-
   return (
     <div style={{ padding: "20px", height: "100vh", display: "flex", flexDirection: "column" }}>
       <h2>UFO Sightings</h2>

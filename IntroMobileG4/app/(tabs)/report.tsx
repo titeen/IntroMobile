@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Image, ScrollView, StyleSheet } from "react-native";  // ScrollView toegevoegd
+import { View, Image, ScrollView, StyleSheet } from "react-native";
 import { TextInput, Button, Text, Card, ToggleButton } from "react-native-paper";
 import * as ImagePicker from "expo-image-picker";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -7,9 +7,7 @@ import { useRouter } from "expo-router";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import EventEmitter from "react-native/Libraries/vendor/emitter/EventEmitter";
-
-const eventEmitter = new EventEmitter();
+import { eventEmitter } from "./list";
 
 const UFO_ICON = L.icon({
   iconUrl: "https://raw.githubusercontent.com/similonap/public_icons/main/ufo.png",
@@ -26,6 +24,11 @@ const ReportSighting = () => {
   const [location, setLocation] = useState<[number, number] | null>(null);
   const [errors, setErrors] = useState<{ witnessName?: string; description?: string; witnessContact?: string }>({});
   const router = useRouter();
+
+  const isValidEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -45,7 +48,11 @@ const ReportSighting = () => {
 
     if (!witnessName.trim()) newErrors.witnessName = "Name is required.";
     if (!description.trim()) newErrors.description = "Description is required.";
-    if (!witnessContact.trim()) newErrors.witnessContact = "Contact is required.";
+    if (!witnessContact.trim()) {
+      newErrors.witnessContact = "Contact is required.";
+    } else if (!isValidEmail(witnessContact)) {
+      newErrors.witnessContact = "Please enter a valid email address.";
+    }
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -56,20 +63,20 @@ const ReportSighting = () => {
       id: Date.now(),
       witnessName,
       description,
-      picture: photo,
+      picture: photo || "https://raw.githubusercontent.com/similonap/public_icons/main/ufo.png", 
       status,
       witnessContact,
       dateTime: new Date().toISOString(),
-      location: location ? { latitude: location[0], longitude: location[1] } : null,
+      location: location ? { latitude: location[0], longitude: location[1] } : { latitude: 51.2243, longitude: 4.3852 },
     };
 
     const storedSightings = await AsyncStorage.getItem("sightings");
     const sightings = storedSightings ? JSON.parse(storedSightings) : [];
     sightings.push(newSighting);
-
     await AsyncStorage.setItem("sightings", JSON.stringify(sightings));
+  
     eventEmitter.emit("newSightingAdded", newSighting);
-
+    
     router.push("/list");
   };
 
@@ -83,7 +90,7 @@ const ReportSighting = () => {
   }
 
   return (
-    <ScrollView style={styles.container}>  
+    <ScrollView style={styles.container}>
       <Text variant="titleLarge" style={styles.title}>
         Report a UFO Sighting 🛸
       </Text>
@@ -111,19 +118,18 @@ const ReportSighting = () => {
       {errors.description && <Text style={styles.errorText}>{errors.description}</Text>}
 
       <TextInput
-        label="Contact"
+        label="Contact Email"
         value={witnessContact}
         onChangeText={setContact}
         mode="outlined"
-        multiline
-        numberOfLines={1}
+        keyboardType="email-address"
         style={styles.input}
         error={!!errors.witnessContact}
       />
       {errors.witnessContact && <Text style={styles.errorText}>{errors.witnessContact}</Text>}
 
-    <Text style={styles.toggleLabel}>Status:</Text>
-    <Text style={styles.statusText}>Current Status: {status}</Text>
+      <Text style={styles.toggleLabel}>Status:</Text>
+      <Text style={styles.statusText}>Current Status: {status}</Text>
       <ToggleButton.Row
         onValueChange={(value) => setStatus(value)}
         value={status}
@@ -144,26 +150,25 @@ const ReportSighting = () => {
         </Card>
       )}
 
-  <Text style={styles.mapTitle}>Select Location:</Text>
-  <View style={styles.mapContainer}>
-    <MapContainer 
-      center={[51.2243, 4.3852]} 
-      zoom={6} 
-      minZoom={3}  
-      maxZoom={18}
-      worldCopyJump={false} 
-      maxBounds={[
-        [-85, -180], 
-        [85, 180],   
-      ]}
-      maxBoundsViscosity={1.0} 
-      style={{ height: "100%", width: "100%" }}
-    >
-      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-      <LocationSelector />
-    </MapContainer>
-  </View>
-
+      <Text style={styles.mapTitle}>Select Location:</Text>
+      <View style={styles.mapContainer}>
+        <MapContainer 
+          center={[51.2243, 4.3852]} 
+          zoom={6} 
+          minZoom={3}  
+          maxZoom={18}
+          worldCopyJump={false} 
+          maxBounds={[
+            [-85, -180], 
+            [85, 180],   
+          ]}
+          maxBoundsViscosity={1.0} 
+          style={{ height: "100%", width: "100%" }}
+        >
+          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+          <LocationSelector />
+        </MapContainer>
+      </View>
 
       <Button mode="contained" onPress={submitSighting} style={styles.submitButton}>
         Submit Sighting
@@ -228,12 +233,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "bold",
     marginBottom: 10,
-},
-errorText: {
-  color: "red",
-  marginBottom: 10,
-  fontSize: 14,
-}
+  },
+  errorText: {
+    color: "red",
+    marginBottom: 10,
+    fontSize: 14,
+  }
 });
 
 export default ReportSighting;

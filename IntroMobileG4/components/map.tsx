@@ -3,6 +3,7 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useEffect, useState } from "react";
 import { fetchSightings, UfoSighting } from "../services/api";
+import { eventEmitter } from "../app/(tabs)/list";
 
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
@@ -42,26 +43,58 @@ const UFOMap = () => {
   const [locationNames, setLocationNames] = useState<Map<number, string>>(new Map());
   const [loadingLocation, setLoadingLocation] = useState<Map<number, boolean>>(new Map());
 
+  const loadSightings = async () => {
+    const data = await fetchSightings();
+    setSightings(data);
+
+    const tempLocationNames = new Map<number, string>();  
+
+    // Loop through each sighting and fetch the location
+    for (const sighting of data) {
+      setLoadingLocation((prev) => new Map(prev).set(sighting.id, true)); 
+      const name = await getLocationName(sighting.location.latitude, sighting.location.longitude);
+      tempLocationNames.set(sighting.id, name);
+      setLoadingLocation((prev) => new Map(prev).set(sighting.id, false));
+    }
+
+    setLocationNames(tempLocationNames);
+  };
+
   useEffect(() => {
-    const loadSightings = async () => {
-      const data = await fetchSightings();
-      setSightings(data);
-
-      const tempLocationNames = new Map<number, string>();  
-
-      // Loop through each sighting and fetch the location
-      for (const sighting of data) {
-        setLoadingLocation((prev) => new Map(prev).set(sighting.id, true)); 
-        const name = await getLocationName(sighting.location.latitude, sighting.location.longitude);
-        tempLocationNames.set(sighting.id, name);
-        setLoadingLocation((prev) => new Map(prev).set(sighting.id, false));
-      }
-
-      setLocationNames(tempLocationNames);
-    };
     loadSightings();
-  }, []);
 
+    const newSightingListener = eventEmitter.addListener("newSightingAdded", async (newSighting) => {
+      console.log("Map received new sighting:", newSighting);
+      setSightings((prevSightings) => [newSighting, ...prevSightings]);
+      setLoadingLocation((prev) => new Map(prev).set(newSighting.id, true));
+      
+      const name = await getLocationName(newSighting.location.latitude, newSighting.location.longitude);
+      setLocationNames((prev) => new Map(prev).set(newSighting.id, name));
+      setLoadingLocation((prev) => new Map(prev).set(newSighting.id, false));
+    });
+
+    const deletionListener = eventEmitter.addListener("sightingDeleted", (id) => {
+      console.log("Map received deletion for sighting:", id);
+      setSightings((prevSightings) => prevSightings.filter(sighting => sighting.id !== id));
+      
+      setLocationNames((prev) => {
+        const updated = new Map(prev);
+        updated.delete(id);
+        return updated;
+      });
+      
+      setLoadingLocation((prev) => {
+        const updated = new Map(prev);
+        updated.delete(id);
+        return updated;
+      });
+    });
+  
+    return () => {
+      newSightingListener.remove();
+      deletionListener.remove();
+    };
+  }, []);
   return (
     <MapContainer 
       center={[51.2243, 4.3852]} 
@@ -101,7 +134,6 @@ const UFOMap = () => {
       })}
     </MapContainer>
   );
-  
 };
 
 export default UFOMap;
