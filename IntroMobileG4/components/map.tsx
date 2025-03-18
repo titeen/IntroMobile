@@ -159,7 +159,7 @@ const UFOMap = () => {
         <TileLayer url={tileUrl} />
         {sightings.map((sighting) => {
           const locationName = locationNames.get(sighting.id) || "Loading location";
-          const isConfirmed = sighting.status.toLowerCase() === "confirmed";
+          const isConfirmed = sighting.status && sighting.status.toLowerCase() === "confirmed";
           
           
           return (

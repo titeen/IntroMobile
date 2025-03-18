@@ -154,7 +154,7 @@ const SightingList = () => {
             backgroundColor: theme.colors.surface,
             boxShadow: isDarkMode ? "0 4px 12px rgba(0,0,0,0.5)" : "0 4px 12px rgba(0,0,0,0.1)",
           }}
->
+        >
           {sightings.length === 0 ? (
             <div style={{ 
               textAlign: "center", 
@@ -251,24 +251,23 @@ const SightingList = () => {
                           display: "flex", 
                           alignItems: "center", 
                           gap: "4px",
-                          backgroundColor: sighting.status.toLowerCase() === "confirmed" ? 
+                          backgroundColor: (sighting.status && sighting.status.toLowerCase() === "confirmed") ?
                             (isDarkMode ? "#1e3a2f" : "#e6f4ea") : 
                             (isDarkMode ? "#3a2f1e" : "#fff8e6"),
-                          color: sighting.status.toLowerCase() === "confirmed" ? 
+                          color: (sighting.status && sighting.status.toLowerCase() === "confirmed") ? 
                             (isDarkMode ? "#4caf50" : "#0d652d") : 
                             (isDarkMode ? "#ffc107" : "#b06000")
                         }}>
                           <MaterialCommunityIcons
-                            name={sighting.status.toLowerCase() === "confirmed" ? "check-circle" : "alert-circle"}
+                            name={(sighting.status && sighting.status.toLowerCase() === "confirmed") ? "check-circle" : "alert-circle"}
                             size={16}
-                            color={sighting.status.toLowerCase() === "confirmed" ? "#4caf50" : "#ffc107"} 
+                            color={(sighting.status && sighting.status.toLowerCase() === "confirmed") ? "#4caf50" : "#ffc107"} 
                           />
                           <span style={{ 
-                            color: sighting.status.toLowerCase() === "confirmed" ? "#4caf50" : "#ffc107" 
+                            color: (sighting.status && sighting.status.toLowerCase() === "confirmed") ? "#4caf50" : "#ffc107"
                           }}>
-                            {sighting.status}
+                            {sighting.status || "Unconfirmed"}
                           </span>
-
                         </div>
                       </div>
                     </div>

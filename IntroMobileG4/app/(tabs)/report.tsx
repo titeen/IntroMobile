@@ -70,7 +70,7 @@ const ReportSighting = () => {
       witnessName,
       description,
       picture: photo || "https://raw.githubusercontent.com/similonap/public_icons/main/ufo.png", 
-      status,
+      status: status || "unconfirmed",  
       witnessContact,
       dateTime: new Date().toISOString(),
       location: location ? { latitude: location[0], longitude: location[1] } : { latitude: 51.2243, longitude: 4.3852 },
