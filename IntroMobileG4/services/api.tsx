@@ -24,27 +24,28 @@ export const fetchSightings = async (): Promise<UfoSighting[]> => {
     const localSightings: UfoSighting[] = storedSightings ? JSON.parse(storedSightings) : [];
     const deletedSightings = await AsyncStorage.getItem("deletedSightings");
     const deletedIds: number[] = deletedSightings ? JSON.parse(deletedSightings) : [];
+    const sightingsMap = new Map<number, UfoSighting>();
+    
+    localSightings.forEach(sighting => {
+      if (!deletedIds.includes(sighting.id)) {
+        sightingsMap.set(sighting.id, sighting);
+      }
+    });
     
     try {
       const response = await axios.get<UfoSighting[]>(API_URL);
-      let apiSightings = response.data.filter(sighting => !deletedIds.includes(sighting.id));
-      const sightingsMap = new Map<number, UfoSighting>();
+      const apiSightings = response.data.filter(sighting => !deletedIds.includes(sighting.id));
       
       apiSightings.forEach(sighting => {
-        sightingsMap.set(sighting.id, sighting);
-      });
-      
-      localSightings.forEach(sighting => {
-        if (!deletedIds.includes(sighting.id)) {
+        if (!sightingsMap.has(sighting.id)) {
           sightingsMap.set(sighting.id, sighting);
         }
       });
       
-      return Array.from(sightingsMap.values());
     } catch (apiError) {
       console.warn("API niet beschikbaar, val terug op lokale sightings:", apiError);
-      return localSightings.filter(sighting => !deletedIds.includes(sighting.id));
     }
+    return Array.from(sightingsMap.values());
   } catch (error) {
     console.error("Error fetching UFO sightings:", error);
     return [];
